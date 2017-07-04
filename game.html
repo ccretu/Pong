@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+    <script src="jquery-3.2.1.js"></script>
+<canvas tabindex = "1" id="canvas" width ="800px" height="480px" style = "border:1px solid black"></canvas>
+<audio id="hit"><source src = "pong.wav" type="audio/wav"></audio>
+<script>
+var canvas;
+var canvasContext;
+var ballX = 50;
+var ballY = 50;
+var ballSpeedX = 15;
+var ballSpeedY = 4;
+var paddle1y = 250;
+var paddle2y = 250;
+const PADDLE_HEIGHT = 100;
+const PADDLE_WIDTH = 10;
+var difficulty = 0;
+
+
+var WIN_SCORE = 10;
+
+var player1Score = 0;
+var player2Score = 0;
+
+window.onload = function(){
+    canvas = document.getElementById("canvas");
+    canvasContext = canvas.getContext("2d");
+    var pongHit = document.getElementById("hit");
+    var framesPerSecond = 30;
+    setInterval(function(){
+        moveEverything();   
+        drawEverything();
+    }, 1000/framesPerSecond);
+
+    canvas.addEventListener("mousemove", function(event){
+        var mousePos = calculateMousePosition(event);
+        paddle1y = mousePos.y;
+
+    });
+
+}
+
+function ballReset(){
+    var x = Math.floor((Math.random() * 2) + 1);
+    if(player1Score == WIN_SCORE)
+    {
+        window.location.href = "win.html";
+    }
+    if(x == 1)
+    {
+        ballSpeedY = -ballSpeedY;
+    }
+    ballSpeedX = -ballSpeedX;
+    ballX = canvas.width/2;
+    ballY = canvas.height/2;
+}
+
+function computerMovement(){
+    var paddle2yCenter = paddle2y +(PADDLE_HEIGHT/2);
+    
+    if(paddle2yCenter < ballY-35 && difficulty <4){
+        paddle2y += 6;
+    }
+    else if(paddle2yCenter > ballY+35 && difficulty <4)
+    {
+        paddle2y -= 6;
+    }
+
+    if(paddle2yCenter < ballY-40 && difficulty >=4 && difficulty <7){
+        paddle2y += 8;
+    }
+    else if(paddle2yCenter > ballY+40 && difficulty >=4 && difficulty <7)
+    {
+        paddle2y -= 8;
+    }
+
+    if(paddle2yCenter < ballY-45 && difficulty >=7){
+        paddle2y += 15;
+    }
+    else if(paddle2yCenter > ballY+45 && difficulty >=7)
+    {
+        paddle2y -= 15;
+    }
+}
+function moveEverything(){
+
+    
+    ballX += ballSpeedX;
+    ballY += ballSpeedY;
+
+    computerMovement();
+
+    if(ballX >= canvas.width-10)
+    {
+        if(ballY > paddle2y-2 && ballY < paddle2y + PADDLE_HEIGHT+2)
+        {
+            ballSpeedX = -ballSpeedX;
+            pongHit.play();
+            var deltaY = ballY - (paddle2y+PADDLE_HEIGHT/2);
+            ballSpeedY = deltaY * 0.35;
+        }
+        else{
+            player1Score ++;
+            ballSpeedX ++;
+            difficulty ++;
+            ballReset();
+        }
+    }
+    if(ballX <= canvas.width - canvas.width + 10)
+    {
+        if(ballY > paddle1y-2 && ballY < paddle1y + PADDLE_HEIGHT+2)
+        {
+            ballSpeedX = -ballSpeedX;
+
+            var deltaY = ballY - (paddle1y+PADDLE_HEIGHT/2);
+            ballSpeedY = deltaY * 0.35;
+            pongHit.play();
+        }
+        else{
+            player2Score ++;
+            ballReset();
+            
+        }
+        
+    }
+    if(ballY > canvas.height)
+    {
+        ballSpeedY = - ballSpeedY;
+    }
+    if(ballY < canvas.height - canvas.height)
+    {
+        ballSpeedY = -ballSpeedY;
+    }
+
+
+    
+
+}
+
+function calculateMousePosition(event){
+    var rect = canvas.getBoundingClientRect();
+    var root = document.documentElement;
+    var mouseX = event.clientX - rect.left - root.scrollLeft;
+    var mouseY = event.clientY - rect.top - root.scrollTop;
+    return{
+        x:mouseX,
+        y:mouseY
+    };
+}
+function drawEverything(){
+
+    colorRect(0,0,canvas.width,canvas.height,"black");
+    colorRect(10,paddle1y,PADDLE_WIDTH,PADDLE_HEIGHT,"white");
+
+    colorRect(canvas.width-PADDLE_WIDTH-10 ,paddle2y,PADDLE_WIDTH,PADDLE_HEIGHT,"white");
+    
+    colorCircle(ballX,ballY,10,0,Math.PI*2, true,"white");
+
+    canvasContext.fillText("Batman Score",100,100);
+    canvasContext.fillText(player1Score,100,110);
+    canvasContext.fillText("Robin Score",canvas.width - 100,100);
+    canvasContext.fillText(player2Score,canvas.width - 100,110);
+    
+}
+
+function colorCircle(centerX, centerY, radius, drawColor){
+    canvasContext.fillStyle = drawColor;
+    canvasContext.beginPath();
+    canvasContext.arc(centerX,centerY,radius,0,Math.PI*2, true);
+    canvasContext.fill();
+}
+function colorRect(leftX, topY, width, height, drawColor)
+{
+    canvasContext.fillStyle = drawColor;
+    canvasContext.fillRect(leftX,topY,width,height);
+}
+
+
+</script>
+</html>
